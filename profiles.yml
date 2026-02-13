@@ -1,5 +1,5 @@
 # dbt profile for Dune API connection
-dbt_template:
+xvslove:
   target: dev
   outputs:
     dev:
