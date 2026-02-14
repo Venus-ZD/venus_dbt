@@ -1,0 +1,84 @@
+version: 2
+
+models:
+  - name: daily_market_info
+    description: "Daily market-level information for all Venus Protocol markets across chains, including exchange rates, reserve factors, liquidation parameters, and prices."
+    columns:
+      - name: blockchain
+        description: "The blockchain where the market is deployed"
+      - name: pool
+        description: "The Venus pool (e.g., core, defi, stablecoin)"
+      - name: vToken
+        description: "The vToken name"
+      - name: vToken_address
+        description: "The vToken contract address"
+      - name: day
+        description: "The date of the market snapshot"
+      - name: price
+        description: "The USD price of the underlying token"
+      - name: exchange_rate
+        description: "The vToken to underlying token exchange rate"
+      - name: reserve_factor
+        description: "The reserve factor for the market"
+
+  - name: daily_market_stats
+    description: "Daily supply, borrows, interest, and liquidation statistics per Venus market across all chains."
+    columns:
+      - name: blockchain
+        description: "The blockchain where the market is deployed"
+      - name: day
+        description: "The date of the statistics"
+      - name: vtoken
+        description: "The vToken name"
+      - name: vtoken_address
+        description: "The vToken contract address"
+      - name: token_supply
+        description: "Total supply in underlying tokens"
+      - name: usd_supply
+        description: "Total supply in USD"
+      - name: token_borrows
+        description: "Total borrows in underlying tokens"
+      - name: usd_borrows
+        description: "Total borrows in USD"
+
+  - name: all_user_transactions
+    description: "All user transactions (supply, borrow, repay, redeem, transfers) across all Venus markets and chains."
+    columns:
+      - name: action
+        description: "Transaction type: supply, borrow, repay, redeem, transfer in, transfer out"
+      - name: chain
+        description: "The blockchain of the transaction"
+      - name: evt_block_time
+        description: "The block timestamp of the transaction"
+      - name: evt_block_date
+        description: "The date of the transaction"
+      - name: user
+        description: "The user address"
+      - name: vtoken_address
+        description: "The vToken contract address"
+      - name: amount_token
+        description: "Transaction amount in underlying tokens"
+      - name: amount_usd
+        description: "Transaction amount in USD"
+
+  - name: daily_user_stats
+    description: "Daily per-user per-market balances, activity, fees, and metadata (prime status, XVS staker, safe multisig, emode) for Venus Protocol."
+    columns:
+      - name: user
+        description: "The user wallet address"
+      - name: day
+        description: "The date of the user statistics"
+      - name: blockchain
+        description: "The blockchain where the market is deployed"
+      - name: vtoken_address
+        description: "The vToken contract address"
+      - name: supply_balance
+        description: "Current supply balance in underlying tokens"
+      - name: supply_balance_usd
+        description: "Current supply balance in USD"
+      - name: borrow_balance
+        description: "Current borrow balance in underlying tokens"
+      - name: borrow_balance_usd
+        description: "Current borrow balance in USD"
+      - name: prime_user
+        description: "Whether the user has Prime status (1/0)"

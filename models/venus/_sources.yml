@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: xvslove_team
+    database: dune
+    schema: xvslove_team
+    tables:
+      - name: dataset_markets_all_chains
