@@ -33,9 +33,10 @@ models:
     +materialized: view # fallback default, materialized should be overriden in model specific configs
     +view_security: invoker # required security setting for views
     venus:
-      +meta:
-        dune:
-          cron: "0 3 * * *" # daily at 03:00 UTC
+      # Dune native cron disabled - using GitHub Actions schedule instead
+      # +meta:
+      #   dune:
+      #     cron: "0 3 * * *" # daily at 03:00 UTC
     +post-hook:
       - sql: "{{ optimize_table(this, model.config.materialized) }}"
         transaction: true
