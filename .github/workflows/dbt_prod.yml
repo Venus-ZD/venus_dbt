@@ -3,7 +3,17 @@ name: dbt prod incremental
 on:
   schedule:
     - cron: '0 3 * * *'  # Run daily at 03:00 UTC
-  workflow_dispatch:  # Allow manual triggers
+  workflow_dispatch:
+    inputs:
+      select:
+        description: 'Model(s) to run (e.g. daily_market_stats). Leave blank for all.'
+        required: false
+        default: ''
+      full_refresh:
+        description: 'Run with --full-refresh?'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: dbt-prod-runs  # Shared group with dbt_deploy.yml to prevent concurrent production runs
@@ -37,7 +47,24 @@ jobs:
         run: uv run dbt deps
 
       - name: Run models
-        run: uv run dbt run --exclude config.materialized:view # views should only run when modified
+        run: |
+          FLAGS=""
+          if [ -n "${{ github.event.inputs.select }}" ]; then
+            FLAGS="$FLAGS --select ${{ github.event.inputs.select }}"
+          else
+            FLAGS="$FLAGS --exclude config.materialized:view"
+          fi
+          if [ "${{ github.event.inputs.full_refresh }}" = "true" ]; then
+            FLAGS="$FLAGS --full-refresh"
+          fi
+          uv run dbt run $FLAGS
 
       - name: Test models
-        run: uv run dbt test --exclude config.materialized:view # views should only be tested when modified
+        run: |
+          FLAGS=""
+          if [ -n "${{ github.event.inputs.select }}" ]; then
+            FLAGS="$FLAGS --select ${{ github.event.inputs.select }}"
+          else
+            FLAGS="$FLAGS --exclude config.materialized:view"
+          fi
+          uv run dbt test $FLAGS
