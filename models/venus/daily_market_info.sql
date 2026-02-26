@@ -132,7 +132,7 @@ SELECT
     c.comptroller,
     lm.liquidation_mantissa
 FROM markets m
-    LEFT JOIN prices.usd_daily p1 ON p1.day >= date(m.deployment_date) AND (
+    LEFT JOIN (SELECT *, CAST(timestamp AS DATE) AS day FROM prices.day) p1 ON p1.day >= date(m.deployment_date) AND (
             --filling in for missing prices
             (p1.blockchain = m.blockchain AND p1.contract_address = m.underlying_token_address)
             OR (m.symbol = 'wUSDM' AND p1.blockchain = 'arbitrum' AND p1.contract_address = 0x57f5e098cad7a3d1eed53991d4d66c45c9af7812) --taking arb wUSDM price for zksync wUSDM
