@@ -255,7 +255,11 @@ SELECT
     e.pool_name AS emode_label
 FROM all_txs t
 LEFT JOIN daily_market_info m ON DATE_TRUNC('day', t.evt_block_time) = m.day AND t.vtoken_address = m.vtoken_address
-LEFT JOIN prices.minute p ON t.chain = p.blockchain AND DATE_TRUNC('minute', t.evt_block_time) = p.timestamp AND m.underlying_token_address = p.contract_address
+LEFT JOIN (
+    SELECT *
+    FROM prices.minute
+    {% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}
+) p ON t.chain = p.blockchain AND DATE_TRUNC('minute', t.evt_block_time) = p.timestamp AND m.underlying_token_address = p.contract_address
 LEFT JOIN emode_status e ON e.blockchain = t.chain AND e.user = t.user AND t.evt_block_number >= e.block_number AND (t.evt_block_number < e.next_update_block OR e.next_update_block IS NULL)
 {% if is_incremental() %}
 WHERE DATE_TRUNC('day', t.evt_block_time) >= date_add('day', -2, current_date)
