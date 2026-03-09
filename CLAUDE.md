@@ -1,6 +1,7 @@
 # Venus dbt Project — Claude Context
 
 ## Project Context
+
 - **Team**: xvslove_team
 - **Dune MCP**: configured as HTTP MCP at `https://api.dune.com/mcp/v1`; requires Claude Code restart to load tools
 - **API keys**: stored locally in `~/.claude.json` — do NOT commit to git
@@ -8,6 +9,7 @@
 - **Schedule**: daily at 03:00 UTC via GitHub Actions (`dbt_prod.yml`)
 
 ## Current Status
+
 - 4 models DEPLOYED to production (`dune.xvslove_team.*`), incremental, verified working
 - GitHub Actions schedule enabled, Dune native cron disabled (commented out in `dbt_project.yml`)
 - Template models deleted from `models/templates/` and junk tables dropped from prod
@@ -18,6 +20,7 @@
 - Tables are private by default; can toggle public in Dune UI or via `+meta.dune.is_public`
 
 ## Table Name Migration — COMPLETED
+
 - 90 Dune queries updated across team account via API + MCP (no template repo needed)
 - Old → new table name mapping:
   1. `dune.xvslove_team.result_methodology_daily_market_stats` → `dune.xvslove_team.daily_market_stats`
@@ -28,19 +31,32 @@
 - Note: queries with Dune `{{parameters}}` fail raw PATCH API with 400; use MCP `updateDuneQuery` tool instead
 
 ## Dune Queries → dbt Models
+
 1. **5525501** → `daily_market_info.sql`
 2. **5468916** → `daily_market_stats.sql` (refs daily_market_info)
 3. **5595697** → `all_user_transactions.sql` (refs daily_market_info)
 4. **5524758** → `daily_user_stats.sql` (refs daily_market_info + all_user_transactions)
 
+## Prices Table Migration — COMPLETED
+
+- `daily_market_info.sql`: upgraded `prices.usd_daily` → `prices.day` (broader coverage: coinpaprika + DEX-derived)
+- `all_user_transactions.sql`: upgraded `prices.usd` → `prices.minute` (modern equivalent)
+- Both use subquery with `{% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}` to avoid full table scan timeout
+- **Full refresh deferred** — rebuilding table resets Dune public visibility; pending Dune making "make table public" permanent
+- Column name differences: legacy tables use `day`/`minute`; modern tables use `timestamp`
+
 ## Data Freshness
+
 - `daily_*` models show up to **yesterday** — they aggregate full days
 - `all_user_transactions` shows **today's** data — it captures real-time events
 - `__dbt_tmp` tables are temp staging tables from incremental runs; safe to drop if left behind
-- GitHub Actions run tested: ~21 min total (~14.6 min for daily_market_info, the bottleneck)
+- GitHub Actions run tested: ~6 min total after prices table upgrade (daily_market_info ~2m, all_user_transactions ~1.5m, others ~1m each)
+- GitHub Actions scheduler typically delays ~2 hours — scheduled 03:00 UTC but starts ~05:00 UTC (07:00 UTC+4 → actually runs ~09:00 UTC+4)
+- Self-hosted runner considered but not viable (company server behind Teleport, no outside access; Mac always-on option available if needed)
 - No data tests currently defined; `dbt test` shows "Nothing to do"
 
 ## Key Notes
+
 - dbt is at `.venv/bin/dbt` (not on PATH)
 - Project uses Trino adapter, `dune.xvslove_team` schema
 - Incremental strategy: `delete+insert` with 2-day lookback, `--full-refresh` for first run
