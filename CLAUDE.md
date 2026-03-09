@@ -55,6 +55,20 @@
 - Self-hosted runner considered but not viable (company server behind Teleport, no outside access; Mac always-on option available if needed)
 - No data tests currently defined; `dbt test` shows "Nothing to do"
 
+## Backfill Procedure (New Asset Added to dataset_markets_all_chains)
+
+When a new asset is added to `dune.xvslove_team.dataset_markets_all_chains`, the 2-day incremental lookback won't cover historical data. To backfill without `--full-refresh` (which resets Dune public visibility):
+
+1. Temporarily change incremental filters in all 4 models to a hardcoded start date (e.g., `DATE '2026-03-02'`):
+   - `daily_market_info.sql`: L138 prices filter + L171 main filter
+   - `daily_market_stats.sql`: L194 main filter
+   - `all_user_transactions.sql`: L261 prices filter + L265 main filter
+   - `daily_user_stats.sql`: L41 timeseries GREATEST() start date
+2. Run: `.venv/bin/dbt run --target prod`
+3. Revert all files back to `date_add('day', -N, current_date)`
+
+`delete+insert` strategy ensures no duplicates — existing rows for the date range are deleted and re-inserted cleanly.
+
 ## Key Notes
 
 - dbt is at `.venv/bin/dbt` (not on PATH)
