@@ -29,7 +29,7 @@ clean-targets: # directories to be removed by `dbt clean`
 
 models:
   xvslove:
-    # Config indicated by + and applies to all files under models/templates/
+    # Config indicated by + and applies to all files under models/
     +materialized: view # fallback default, materialized should be overriden in model specific configs
     +view_security: invoker # required security setting for views
     venus:
