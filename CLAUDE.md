@@ -34,10 +34,10 @@
 2-day incremental lookback won't cover historical data. To backfill:
 
 1. Change incremental filters in all 4 models to a hardcoded start date (e.g., `DATE '2026-03-02'`):
-   - `daily_market_info.sql`: L138 prices filter + L171 main filter
-   - `daily_market_stats.sql`: L194 main filter
-   - `all_user_transactions.sql`: L261 prices filter + L265 main filter
-   - `daily_user_stats.sql`: L41 timeseries GREATEST() start date
+   - `daily_market_info.sql`: L139 prices filter + L172 main filter
+   - `daily_market_stats.sql`: L195 main filter
+   - `all_user_transactions.sql`: L262 prices filter + L266 main filter
+   - `daily_user_stats.sql`: L42 timeseries GREATEST() start date
 2. Run: `.venv/bin/dbt run --target prod`
 3. Revert all files back to `date_add('day', -N, current_date)`
 
