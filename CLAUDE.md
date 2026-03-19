@@ -3,63 +3,37 @@
 ## Project Context
 
 - **Team**: xvslove_team
-- **Dune MCP**: configured as HTTP MCP at `https://api.dune.com/mcp/v1`; requires Claude Code restart to load tools
-- **API keys**: stored locally in `~/.claude.json` — do NOT commit to git
 - **Branch**: `main`
-- **Schedule**: daily at 03:00 UTC via GitHub Actions (`dbt_prod.yml`)
+- **Schedule**: daily at 03:00 UTC via GitHub Actions (`dbt_prod.yml`), typically starts ~05:00 UTC due to scheduler delay
+- **Dune MCP**: HTTP MCP at `https://api.dune.com/mcp/v1`; requires Claude Code restart to load tools
+- **API keys**: stored locally in `~/.claude.json` — do NOT commit to git
 
-## Current Status
+## Models
 
-- 4 models DEPLOYED to production (`dune.xvslove_team.*`), incremental, verified working
-- GitHub Actions schedule enabled, Dune native cron disabled (commented out in `dbt_project.yml`)
-- Template models deleted from `models/templates/` and junk tables dropped from prod
-- `dbt_ci.yml` deleted (was causing workflow file errors); `dbt_deploy.yml` kept but inactive
-- `workflow_dispatch` supports `--select` and `--full-refresh` inputs for manual runs only
-- Daily cron runs incrementally (no `--full-refresh`); `--full-refresh` is manual-only override
-- Health check query created on Dune: query ID 6698398
-- Tables are private by default; can toggle public in Dune UI or via `+meta.dune.is_public`
+4 models deployed to `dune.xvslove_team.*`, all incremental `delete+insert`:
 
-## Table Name Migration — COMPLETED
+| Model | Refs | Date Column |
+|-------|------|-------------|
+| `daily_market_info` | — | `day` |
+| `daily_market_stats` | daily_market_info | `day` |
+| `all_user_transactions` | daily_market_info | `evt_block_date` |
+| `daily_user_stats` | daily_market_info + all_user_transactions | `day` |
 
-- 90 Dune queries updated across team account via API + MCP (no template repo needed)
-- Old → new table name mapping:
-  1. `dune.xvslove_team.result_methodology_daily_market_stats` → `dune.xvslove_team.daily_market_stats`
-  2. `dune.xvslove_team.result_daily_user_stats` → `dune.xvslove_team.daily_user_stats`
-  3. `dune.xvslove_team.result_all_user_transactions` → `dune.xvslove_team.all_user_transactions`
-  4. `dune.xvslove_team.result_daily_market_info` → `dune.xvslove_team.daily_market_info`
-- Verified: 0 old table names remain across all 428 team queries
-- Note: queries with Dune `{{parameters}}` fail raw PATCH API with 400; use MCP `updateDuneQuery` tool instead
+- External query deps (raw refs): query_5204403, query_5754116, query_5930024, query_5579782, query_5667382
+- `daily_*` shows up to yesterday; `all_user_transactions` shows today's data
 
-## Dune Queries → dbt Models
+## Table Visibility
 
-1. **5525501** → `daily_market_info.sql`
-2. **5468916** → `daily_market_stats.sql` (refs daily_market_info)
-3. **5595697** → `all_user_transactions.sql` (refs daily_market_info)
-4. **5524758** → `daily_user_stats.sql` (refs daily_market_info + all_user_transactions)
+- Tables are private by default on Dune
+- All 4 models have `post_hook` that runs `ALTER TABLE SET PROPERTIES extra_properties = map_from_entries(ARRAY[ROW('dune.public', 'true')])` — keeps tables public even after full refresh
+- `+meta.dune.is_public` does NOT work (dbt-trino adapter doesn't support it)
+- Visibility SQL requires transformation session — must run via dbt, not Dune query editor
 
-## Prices Table Migration — COMPLETED
+## Backfill Procedure (New Asset in dataset_markets_all_chains)
 
-- `daily_market_info.sql`: upgraded `prices.usd_daily` → `prices.day` (broader coverage: coinpaprika + DEX-derived)
-- `all_user_transactions.sql`: upgraded `prices.usd` → `prices.minute` (modern equivalent)
-- Both use subquery with `{% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}` to avoid full table scan timeout
-- **Full refresh deferred** — rebuilding table resets Dune public visibility; pending Dune making "make table public" permanent
-- Column name differences: legacy tables use `day`/`minute`; modern tables use `timestamp`
+2-day incremental lookback won't cover historical data. To backfill:
 
-## Data Freshness
-
-- `daily_*` models show up to **yesterday** — they aggregate full days
-- `all_user_transactions` shows **today's** data — it captures real-time events
-- `__dbt_tmp` tables are temp staging tables from incremental runs; safe to drop if left behind
-- GitHub Actions run tested: ~6 min total after prices table upgrade (daily_market_info ~2m, all_user_transactions ~1.5m, others ~1m each)
-- GitHub Actions scheduler typically delays ~2 hours — scheduled 03:00 UTC but starts ~05:00 UTC (07:00 UTC+4 → actually runs ~09:00 UTC+4)
-- Self-hosted runner considered but not viable (company server behind Teleport, no outside access; Mac always-on option available if needed)
-- No data tests currently defined; `dbt test` shows "Nothing to do"
-
-## Backfill Procedure (New Asset Added to dataset_markets_all_chains)
-
-When a new asset is added to `dune.xvslove_team.dataset_markets_all_chains`, the 2-day incremental lookback won't cover historical data. To backfill without `--full-refresh` (which resets Dune public visibility):
-
-1. Temporarily change incremental filters in all 4 models to a hardcoded start date (e.g., `DATE '2026-03-02'`):
+1. Change incremental filters in all 4 models to a hardcoded start date (e.g., `DATE '2026-03-02'`):
    - `daily_market_info.sql`: L138 prices filter + L171 main filter
    - `daily_market_stats.sql`: L194 main filter
    - `all_user_transactions.sql`: L261 prices filter + L265 main filter
@@ -67,15 +41,10 @@ When a new asset is added to `dune.xvslove_team.dataset_markets_all_chains`, the
 2. Run: `.venv/bin/dbt run --target prod`
 3. Revert all files back to `date_add('day', -N, current_date)`
 
-`delete+insert` strategy ensures no duplicates — existing rows for the date range are deleted and re-inserted cleanly.
-
 ## Key Notes
 
-- dbt is at `.venv/bin/dbt` (not on PATH)
-- Project uses Trino adapter, `dune.xvslove_team` schema
-- Incremental strategy: `delete+insert` with 2-day lookback, `--full-refresh` for first run
-- External query deps kept as raw refs: query_5204403, query_5754116, query_5930024, query_5579782, query_5667382
-- dev target → `xvslove_team__tmp_` schema; prod target → `xvslove_team` schema
-- `gh` CLI installed via Homebrew, authenticated as Venus-ZD
-- `all_user_transactions` uses `evt_block_date` as date column (not `day` or `block_date`)
-- Personal Dune account API key has no paid plan — Query management endpoints require Analyst plan or higher; use team API key for bulk operations
+- dbt: `.venv/bin/dbt` (not on PATH), Trino adapter
+- dev target → `xvslove_team__tmp_`; prod target → `xvslove_team`
+- `workflow_dispatch` supports `--select` and `--full-refresh` for manual runs
+- `gh` CLI authenticated as Venus-ZD
+- Personal Dune API key has no paid plan; use team API key for bulk operations

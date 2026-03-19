@@ -6,6 +6,7 @@
     , properties = {
         "partitioned_by": "ARRAY['evt_block_date']"
     }
+    , post_hook = "ALTER TABLE {{ this }} SET PROPERTIES extra_properties = map_from_entries(ARRAY[ROW('dune.public', 'true')])"
 )
 }}
 
