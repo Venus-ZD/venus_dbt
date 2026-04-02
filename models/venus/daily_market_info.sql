@@ -143,18 +143,6 @@ FROM markets m
             OR (m.symbol = 'wUSDM' AND p1.blockchain = 'arbitrum' AND p1.contract_address = 0x57f5e098cad7a3d1eed53991d4d66c45c9af7812) --taking arb wUSDM price for zksync wUSDM
             OR (m.symbol IN ('xSolvBTC', 'solvBTC') AND p1.blockchain IS NULL AND p1.symbol = 'BTC')
             OR (m.symbol IN ('zkETH', 'wsuperOETHb') AND p1.blockchain IS NULL AND p1.symbol = 'ETH')
-            OR (m.symbol IN ('weETH') AND m.blockchain = 'bnb' AND p1.blockchain = 'ethereum' AND p1.contract_address = 0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee)
-            OR (m.symbol IN ('weETHs') AND p1.blockchain = 'ethereum' AND p1.contract_address = 0xcd5fe23c85820f7b72d0926fc9b05b43e359b7ee) --for weETHs using approximation to weETH
-            OR (m.symbol = 'WBTC' AND m.blockchain = 'unichain' AND p1.blockchain = 'unichain' AND p1.contract_address = 0x927b51f251480a681271180da4de28d44ec4afb8)
-            OR (m.symbol IN ('TUSDOLD', 'sFRAX') AND p1.blockchain = 'ethereum' AND p1.contract_address = 0x0000000000085d4780b73119b644ae5ecd22b376) -- for sFRAX using approximation as stablecoin
-            OR (m.symbol IN ('FDUSD') AND m.blockchain = 'opbnb' AND p1.blockchain = 'bnb' AND p1.contract_address = 0xc5f0f7b66764f6ec8c8dff7ba683102295e16409)
-            OR (m.symbol = 'TRXOLD' AND p1.blockchain = 'bnb' AND p1.contract_address = 0xce7de646e7208a4ef112cb6ed5038fa6cc6b12e3)
-            OR (m.symbol = 'NFT' AND p1.blockchain = 'bnb' AND p1.contract_address = 0xfaab744db9def8e13194600ed02bc5d5bed3b85c)
-            OR (m.symbol = 'BTCB' AND p1.blockchain = 'bnb' AND p1.contract_address = 0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c)
-            OR (m.symbol = 'eBTC' AND p1.blockchain = 'arbitrum' AND p1.contract_address = 0x657e8c867d8b37dcc18fa4caead9c45eb088c642)
-            OR (m.symbol IN ('asBNB', 'stkBNB') AND p1.blockchain = 'bnb' AND p1.contract_address = 0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c) --approximation with BNB, doesn't account for yield
-            OR (m.symbol = 'sfrxETH' AND p1.blockchain = 'ethereum' AND p1.contract_address = 0x5e8422345238f34275888049021821e8e08caa1f) --approximation with frxETH, doesn't account for yield
-            OR (m.symbol = 'U' AND p1.blockchain = 'bnb' AND p1.contract_address = 0x55d398326f99059fF775485246999027B3197955) --approximation with USTC, doesn't account for yield
     )
     LEFT JOIN (SELECT * FROM query_5204403) p2 ON -- pt-token prices
         p2.timestamp < CURRENT_DATE AND p2.timestamp >= date(m.deployment_date)
