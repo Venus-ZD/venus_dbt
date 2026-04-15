@@ -35,11 +35,11 @@ mints_and_redeems AS ( --all mint and redeem events
         UNION ALL
         SELECT 'bnb' AS chain, contract_address, evt_block_time, -redeemTokens AS amount FROM venus_bnb.vbep20_bnb_core_evt_redeem
         UNION ALL
-        SELECT 'bnb' AS chain, contract_address, evt_block_time, mintTokens AS amount FROM venus_bnb.vbep20delegate_v2_evt_mint WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, contract_address, evt_block_time, mintTokens AS amount FROM venus_bnb.vbep20delegate_evt_mint WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
         UNION ALL
-        SELECT 'bnb' AS chain, contract_address, evt_block_time, mintTokens AS amount FROM venus_bnb.vbep20delegate_v2_evt_mintbehalf WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, contract_address, evt_block_time, mintTokens AS amount FROM venus_bnb.vbep20delegate_evt_mintbehalf WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
         UNION ALL
-        SELECT 'bnb' AS chain, contract_address, evt_block_time, -redeemTokens AS amount FROM venus_bnb.vbep20delegate_v2_evt_redeem WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, contract_address, evt_block_time, -redeemTokens AS amount FROM venus_bnb.vbep20delegate_evt_redeem WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
         --filling in historic data missing from decoded contracts
         UNION ALL (
         --mint
@@ -89,7 +89,7 @@ borrows AS (
         UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, contract_address, totalBorrows FROM venus_bnb.vbep20_bnb_core_evt_accrueinterest
         UNION ALL
-        SELECT 'bnb' AS chain, evt_block_time, contract_address, totalBorrows FROM venus_bnb.vbep20delegate_v2_evt_accrueinterest WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, evt_block_time, contract_address, totalBorrows FROM venus_bnb.vbep20delegate_evt_accrueinterest WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
         UNION ALL
         SELECT chain, evt_block_time, contract_address, totalBorrows FROM venus_multichain.vToken_evt_accrueinterest
 
@@ -131,7 +131,7 @@ daily_interest AS (
                 UNION ALL
                 SELECT 'bnb' AS chain, evt_block_time, contract_address, interestAccumulated FROM venus_bnb.vbep20_bnb_core_evt_accrueinterest
                 UNION ALL
-                SELECT 'bnb' AS chain, evt_block_time, contract_address, interestAccumulated FROM venus_bnb.vbep20delegate_v2_evt_accrueinterest WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+                SELECT 'bnb' AS chain, evt_block_time, contract_address, interestAccumulated FROM venus_bnb.vbep20delegate_evt_accrueinterest WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
                 UNION ALL
                 SELECT chain, evt_block_time, contract_address, interestAccumulated FROM venus_multichain.vToken_evt_AccrueInterest
             )
