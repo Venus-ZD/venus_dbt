@@ -134,9 +134,21 @@ SELECT
     lm.liquidation_mantissa
 FROM markets m
     LEFT JOIN (
-        SELECT *, CAST(timestamp AS DATE) AS day
-        FROM prices.day
-        {% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}
+        SELECT
+            p.blockchain, p.contract_address, p.symbol, p.timestamp,
+            CASE
+                WHEN p.symbol = 'xSolvBTC' AND p.blockchain = 'bnb' AND p.price > 1e6
+                    THEN btc.price -- upstream prices.day spike for xSolvBTC 4/27-4/30; use BTC ref until Dune fixes it
+                ELSE p.price
+            END AS price,
+            CAST(p.timestamp AS DATE) AS day
+        FROM prices.day p
+        LEFT JOIN (
+            SELECT timestamp, price FROM prices.day
+            WHERE blockchain = 'bitcoin' AND contract_address = 0x0000000000000000000000000000000000000000
+            {% if is_incremental() %}AND timestamp >= date_add('day', -3, current_date){% endif %}
+        ) btc ON p.timestamp = btc.timestamp
+        {% if is_incremental() %}WHERE p.timestamp >= date_add('day', -3, current_date){% endif %}
     ) p1 ON p1.day >= date(m.deployment_date) AND (
             --filling in for missing prices
             (p1.blockchain = m.blockchain AND p1.contract_address = m.underlying_token_address)

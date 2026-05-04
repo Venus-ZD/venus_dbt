@@ -257,7 +257,12 @@ SELECT
 FROM all_txs t
 LEFT JOIN daily_market_info m ON DATE_TRUNC('day', t.evt_block_time) = m.day AND t.vtoken_address = m.vtoken_address
 LEFT JOIN (
-    SELECT *
+    SELECT
+        blockchain, contract_address, symbol, timestamp,
+        CASE
+            WHEN symbol = 'xSolvBTC' AND blockchain = 'bnb' AND price > 1e6 THEN NULL -- upstream prices.minute spike 4/27-4/30; falls back to m.price
+            ELSE price
+        END AS price
     FROM prices.minute
     {% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}
 ) p ON t.chain = p.blockchain AND DATE_TRUNC('minute', t.evt_block_time) = p.timestamp AND m.underlying_token_address = p.contract_address
