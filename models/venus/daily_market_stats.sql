@@ -192,7 +192,7 @@ FROM (
 
     WHERE vtoken_supply IS NOT NULL
     {% if is_incremental() %}
-    AND m.day >= date_add('day', -2, current_date)
+    AND m.day BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'
     {% endif %}
 )
 

@@ -22,7 +22,7 @@ WITH timeseries AS (
             underlying_token_address,
             pool,
             DATE(MIN(evt_block_date)) AS start_date,
-            CURRENT_DATE AS end_date
+            DATE '2026-05-22' AS end_date
         FROM {{ ref('all_user_transactions') }}
         GROUP BY 1,2,3,4,5,6,7
     )
@@ -39,7 +39,7 @@ WITH timeseries AS (
     FROM user_date_range r
     CROSS JOIN UNNEST(sequence(
         {% if is_incremental() %}
-        GREATEST(start_date, date_add('day', -2, current_date))
+        GREATEST(start_date, DATE '2026-04-15')
         {% else %}
         start_date
         {% endif %}

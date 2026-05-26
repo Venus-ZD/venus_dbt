@@ -146,9 +146,9 @@ FROM markets m
         LEFT JOIN (
             SELECT timestamp, price FROM prices.day
             WHERE blockchain = 'bitcoin' AND contract_address = 0x0000000000000000000000000000000000000000
-            {% if is_incremental() %}AND timestamp >= date_add('day', -3, current_date){% endif %}
+            {% if is_incremental() %}AND timestamp BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'{% endif %}
         ) btc ON p.timestamp = btc.timestamp
-        {% if is_incremental() %}WHERE p.timestamp >= date_add('day', -3, current_date){% endif %}
+        {% if is_incremental() %}WHERE p.timestamp BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'{% endif %}
     ) p1 ON p1.day >= date(m.deployment_date) AND (
             --filling in for missing prices
             (p1.blockchain = m.blockchain AND p1.contract_address = m.underlying_token_address)
@@ -169,5 +169,5 @@ FROM markets m
         AND COALESCE(p1.day, p2.timestamp) >= lm.day AND (COALESCE(p1.day, p2.timestamp) < lm.next_update_day OR lm.next_update_day IS NULL)
     LEFT JOIN liquidation_seize_share l ON m.vToken_contract_address = l.contract_address AND m.blockchain = l.chain AND COALESCE(p1.day, p2.timestamp) >= l.day AND (COALESCE(p1.day, p2.timestamp) < l.next_update_day OR l.next_update_day IS NULL)
 {% if is_incremental() %}
-WHERE COALESCE(p1.day, p2.timestamp) >= date_add('day', -2, current_date)
+WHERE COALESCE(p1.day, p2.timestamp) BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'
 {% endif %}

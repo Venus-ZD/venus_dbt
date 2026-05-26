@@ -264,9 +264,9 @@ LEFT JOIN (
             ELSE price
         END AS price
     FROM prices.minute
-    {% if is_incremental() %}WHERE timestamp >= date_add('day', -3, current_date){% endif %}
+    {% if is_incremental() %}WHERE timestamp BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'{% endif %}
 ) p ON t.chain = p.blockchain AND DATE_TRUNC('minute', t.evt_block_time) = p.timestamp AND m.underlying_token_address = p.contract_address
 LEFT JOIN emode_status e ON e.blockchain = t.chain AND e.user = t.user AND t.evt_block_number >= e.block_number AND (t.evt_block_number < e.next_update_block OR e.next_update_block IS NULL)
 {% if is_incremental() %}
-WHERE DATE_TRUNC('day', t.evt_block_time) >= date_add('day', -2, current_date)
+WHERE DATE_TRUNC('day', t.evt_block_time) BETWEEN DATE '2026-04-15' AND DATE '2026-05-22'
 {% endif %}
