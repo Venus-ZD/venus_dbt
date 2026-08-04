@@ -121,8 +121,8 @@ SELECT
     m.underlying_token_address,
     m.decimals AS underlying_token_decimals,
     m.deployment_date,
-    COALESCE(p1.day, p2.timestamp) AS day,
-    COALESCE(p1.price, p2.price) AS price,
+    COALESCE(p1.day, p2.timestamp, p3.day) AS day,
+    COALESCE(p1.price, p2.price, p3.price) AS price,
     e.exchange_rate_raw / POWER(10, m.decimals + 10) AS exchange_rate,
     r.reserve_factor,
     COALESCE(
@@ -160,14 +160,19 @@ FROM markets m
         p2.timestamp < CURRENT_DATE AND p2.timestamp >= date(m.deployment_date)
         AND p2.contract_address = m.underlying_token_address
         AND p2.contract_address != 0x541b5eeac7d4434c8f87e2d32019d67611179606 --issue in the pricing
-    LEFT JOIN exchange_rates e ON m.vToken_contract_address = e.contract_address AND m.blockchain = e.chain AND COALESCE(p1.day, p2.timestamp) >= e.day AND (COALESCE(p1.day, p2.timestamp) < e.next_update_day OR e.next_update_day IS NULL)
-    LEFT JOIN reserve_factor r ON m.vToken_contract_address = r.contract_address AND m.blockchain = r.chain AND COALESCE(p1.day, p2.timestamp) >= r.day AND (COALESCE(p1.day, p2.timestamp) < r.next_update_day OR r.next_update_day IS NULL)
-    LEFT JOIN comptroller c ON m.vToken_contract_address = c.contract_address AND m.blockchain = c.chain AND COALESCE(p1.day, p2.timestamp) >= c.day AND (COALESCE(p1.day, p2.timestamp) < c.next_update_day OR c.next_update_day IS NULL)
+    LEFT JOIN ( -- xSolvBTC: prices.day stopped emitting rows for this token on 2026-06-20; prices.usd_daily still has a chain-agnostic BTC reference price
+        SELECT day, price FROM prices.usd_daily
+        WHERE blockchain IS NULL AND symbol = 'BTC'
+        {% if is_incremental() %}AND day >= date_add('day', -3, current_date){% endif %}
+    ) p3 ON m.symbol = 'xSolvBTC' AND p3.day >= date(m.deployment_date)
+    LEFT JOIN exchange_rates e ON m.vToken_contract_address = e.contract_address AND m.blockchain = e.chain AND COALESCE(p1.day, p2.timestamp, p3.day) >= e.day AND (COALESCE(p1.day, p2.timestamp, p3.day) < e.next_update_day OR e.next_update_day IS NULL)
+    LEFT JOIN reserve_factor r ON m.vToken_contract_address = r.contract_address AND m.blockchain = r.chain AND COALESCE(p1.day, p2.timestamp, p3.day) >= r.day AND (COALESCE(p1.day, p2.timestamp, p3.day) < r.next_update_day OR r.next_update_day IS NULL)
+    LEFT JOIN comptroller c ON m.vToken_contract_address = c.contract_address AND m.blockchain = c.chain AND COALESCE(p1.day, p2.timestamp, p3.day) >= c.day AND (COALESCE(p1.day, p2.timestamp, p3.day) < c.next_update_day OR c.next_update_day IS NULL)
     LEFT JOIN liquidation_mantissa lm ON
         (((m.blockchain != 'bnb' OR m.pool != 'Core' OR lm.vtoken_address IS NULL) AND c.comptroller = lm.comptroller)
         OR (m.blockchain = 'bnb' AND m.pool = 'Core' AND m.vToken_contract_address = lm.vtoken_address))
-        AND COALESCE(p1.day, p2.timestamp) >= lm.day AND (COALESCE(p1.day, p2.timestamp) < lm.next_update_day OR lm.next_update_day IS NULL)
-    LEFT JOIN liquidation_seize_share l ON m.vToken_contract_address = l.contract_address AND m.blockchain = l.chain AND COALESCE(p1.day, p2.timestamp) >= l.day AND (COALESCE(p1.day, p2.timestamp) < l.next_update_day OR l.next_update_day IS NULL)
+        AND COALESCE(p1.day, p2.timestamp, p3.day) >= lm.day AND (COALESCE(p1.day, p2.timestamp, p3.day) < lm.next_update_day OR lm.next_update_day IS NULL)
+    LEFT JOIN liquidation_seize_share l ON m.vToken_contract_address = l.contract_address AND m.blockchain = l.chain AND COALESCE(p1.day, p2.timestamp, p3.day) >= l.day AND (COALESCE(p1.day, p2.timestamp, p3.day) < l.next_update_day OR l.next_update_day IS NULL)
 {% if is_incremental() %}
-WHERE COALESCE(p1.day, p2.timestamp) >= date_add('day', -2, current_date)
+WHERE COALESCE(p1.day, p2.timestamp, p3.day) >= date_add('day', -2, current_date)
 {% endif %}
