@@ -88,9 +88,9 @@ borrows AS (
         UNION ALL
         SELECT 'bnb' AS chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_bnb.vbep20_bnb_core_evt_repayborrow
         UNION ALL
-        SELECT 'bnb' AS chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_bnb.vbep20delegate_evt_borrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_bnb.vbep20delegate_evt_borrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
         UNION ALL
-        SELECT 'bnb' AS chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_bnb.vbep20delegate_evt_repayborrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf) --two contracts that could not be carried over to the new table
+        SELECT 'bnb' AS chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_bnb.vbep20delegate_evt_repayborrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
         UNION ALL
         SELECT chain, borrower AS user, contract_address, evt_block_time, evt_tx_hash, evt_index, accountBorrows FROM venus_multichain.vToken_evt_borrow
         UNION ALL
