@@ -29,6 +29,8 @@ exchange_rates AS (
             UNION ALL
             SELECT 'bnb' AS chain, contract_address, call_block_date, output_0 FROM venus_bnb.vbep20delegate_call_exchangeratestored WHERE call_success AND contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
             UNION ALL
+            SELECT 'bnb' AS chain, contract_address, call_block_date, output_0 FROM venus_bnb.vbep20delegator_call_exchangeratestored WHERE call_success AND contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
+            UNION ALL
             SELECT chain, contract_address, call_block_date, output_0 FROM venus_multichain.VToken_call_exchangeRateStored WHERE call_success
     )
         GROUP BY 1,2,3
@@ -48,6 +50,8 @@ reserve_factor AS ( --reserve factor changes over time
             UNION ALL
             SELECT 'bnb' AS chain, evt_block_date, contract_address, newReserveFactorMantissa FROM venus_bnb.vbep20delegate_evt_newreservefactor WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
             UNION ALL
+            SELECT 'bnb' AS chain, evt_block_date, contract_address, newReserveFactorMantissa FROM venus_bnb.vbep20delegator_evt_newreservefactor WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
+            UNION ALL
             SELECT chain, evt_block_date, contract_address, newReserveFactorMantissa FROM venus_multichain.VToken_evt_NewReserveFactor
         )
         GROUP BY 1,2,3
@@ -64,6 +68,8 @@ comptroller AS ( -- used to get share of protocol liquidation fee
         SELECT 'bnb' AS chain, contract_address, evt_block_date AS day, newComptroller AS comptroller, ROW_NUMBER() OVER(PARTITION BY contract_address ORDER BY evt_block_time DESC, evt_index DESC) AS rn FROM venus_bnb.vbep20_bnb_core_evt_newcomptroller
         UNION ALL
         SELECT 'bnb' AS chain, contract_address, evt_block_date AS day, newComptroller AS comptroller, ROW_NUMBER() OVER(PARTITION BY contract_address ORDER BY evt_block_time DESC, evt_index DESC) AS rn FROM venus_bnb.vbep20delegate_evt_newcomptroller WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
+        UNION ALL
+        SELECT 'bnb' AS chain, contract_address, evt_block_date AS day, newComptroller AS comptroller, ROW_NUMBER() OVER(PARTITION BY contract_address ORDER BY evt_block_time DESC, evt_index DESC) AS rn FROM venus_bnb.vbep20delegator_evt_newcomptroller WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
         UNION ALL
         SELECT chain, contract_address, evt_block_date AS day, newComptroller AS comptroller, ROW_NUMBER() OVER(PARTITION BY contract_address ORDER BY evt_block_time DESC, evt_index DESC) AS rn FROM venus_multichain.vtoken_evt_newcomptroller
     )

@@ -40,6 +40,8 @@ borrows AS (
         UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, borrowAmount FROM venus_bnb.vbep20delegate_evt_borrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
         UNION ALL
+        SELECT 'bnb' AS chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, borrowAmount FROM venus_bnb.vbep20delegator_evt_borrow WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
+        UNION ALL
         SELECT chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, borrowAmount FROM venus_multichain.vtoken_evt_borrow
         ) a
     WHERE borrowAmount > 0
@@ -62,6 +64,8 @@ repays AS (
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, repayAmount FROM venus_bnb.vbep20_bnb_core_evt_repayborrow
         UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, repayAmount FROM venus_bnb.vbep20delegate_evt_repayborrow WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
+        UNION ALL
+        SELECT 'bnb' AS chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, repayAmount FROM venus_bnb.vbep20delegator_evt_repayborrow WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
         UNION ALL
         SELECT chain, evt_block_time, evt_block_number, borrower, contract_address, evt_tx_hash, repayAmount FROM venus_multichain.vtoken_evt_repayborrow
         ) a
@@ -88,7 +92,11 @@ mints AS (
         UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, minter, contract_address, evt_tx_hash, mintAmount, mintTokens FROM venus_bnb.vbep20delegate_evt_mint WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
         UNION ALL
+        SELECT 'bnb' AS chain, evt_block_time, evt_block_number, minter, contract_address, evt_tx_hash, mintAmount, mintTokens FROM venus_bnb.vbep20delegator_evt_mint WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
+        UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, receiver, contract_address, evt_tx_hash, mintAmount, mintTokens FROM venus_bnb.vbep20delegate_evt_mintbehalf WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
+        UNION ALL
+        SELECT 'bnb' AS chain, evt_block_time, evt_block_number, receiver, contract_address, evt_tx_hash, mintAmount, mintTokens FROM venus_bnb.vbep20delegator_evt_mintbehalf WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
         UNION ALL
         SELECT chain, evt_block_time, evt_block_number, minter, contract_address, evt_tx_hash, mintAmount, mintTokens FROM venus_multichain.vtoken_evt_mint
         --filling in historic data missing from decoded contracts
@@ -130,6 +138,8 @@ redeems AS (
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, redeemer, contract_address, evt_tx_hash, redeemAmount, redeemTokens FROM venus_bnb.vbep20_bnb_core_evt_redeem
         UNION ALL
         SELECT 'bnb' AS chain, evt_block_time, evt_block_number, redeemer, contract_address, evt_tx_hash, redeemAmount, redeemTokens FROM venus_bnb.vbep20delegate_evt_redeem WHERE contract_address IN (0x0c1da220d301155b87318b90692da8dc43b67340, 0xcc1db43a06d97f736c7b045aedd03c6707c09bdf, 0x3e281461efb3d53ec20db207674373ed8ef3bba9) --two contracts that could not be carried over to the new table
+        UNION ALL
+        SELECT 'bnb' AS chain, evt_block_time, evt_block_number, redeemer, contract_address, evt_tx_hash, redeemAmount, redeemTokens FROM venus_bnb.vbep20delegator_evt_redeem WHERE contract_address IN (0x97421799419eb782628e73e7220d8e0a207469a3, 0xeb8ca841cbe1bc4832a10b15c7dab1081edad371, 0xc36dfacc7a125859c106f29b9f2d874ccf29a55a) --TSLAB/NVDAB/SPCXB decoded under VBep20Delegator ABI instead of VBep20Delegate
         UNION ALL
         SELECT chain, evt_block_time, evt_block_number, redeemer, contract_address, evt_tx_hash, redeemAmount, redeemTokens FROM venus_multichain.vtoken_evt_redeem
         --filling in historic data missing from decoded contracts
