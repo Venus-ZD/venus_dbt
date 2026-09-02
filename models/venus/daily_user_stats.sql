@@ -196,6 +196,15 @@ prime AS (
             SELECT chain, evt_block_time, evt_index, user, 1 AS prime_user FROM venus_multichain.Prime_evt_Mint
             UNION ALL
             SELECT chain, evt_block_time, evt_index, user, 0 AS prime_user FROM venus_multichain.Prime_evt_Burn
+            UNION ALL
+            -- Prime v2 (0x059EabA8676b03e4e8f009eFb7F587C28450F50f) went live on bnb 2026-07-02 and is
+            -- decoded separately as PrimeV2 because Mint changed signature from (address,bool) to
+            -- (address). Different topic0 means v1 and v2 can never share a decoded table, so
+            -- venus_multichain.Prime_evt_* excludes v2 and must be UNIONed with it here.
+            -- PrimeV2 is bnb-only and its tables carry no chain column.
+            SELECT 'bnb' AS chain, evt_block_time, evt_index, user, 1 AS prime_user FROM venus_bnb.primev2_evt_mint
+            UNION ALL
+            SELECT 'bnb' AS chain, evt_block_time, evt_index, user, 0 AS prime_user FROM venus_bnb.primev2_evt_burn
         )
     )
     WHERE rn = 1
